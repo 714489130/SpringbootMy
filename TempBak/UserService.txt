@@ -1,0 +1,18 @@
+package com.hxl.test.web.service;
+
+import com.hxl.test.core.entity.User;
+
+import java.util.List;
+import java.util.Map;
+
+public interface UserService {
+    Integer addUser(String phone, String name, String password, Integer age, String sex);
+    Integer delUser(String phone, String password);
+    List<User> getAllUser();
+    List<User> searchUser(Integer id, String phone, String name, String password, Integer age, String sex);
+    List<User> getUserByPhoneList(String phone);
+    Map<String, Object> getUserByPhoneMap(String phone);
+    List<User> getUserByName(String name);
+    User checkUser(String phone, String password);
+    Integer modifyUser(User new_user);
+}

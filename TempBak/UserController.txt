@@ -1,0 +1,261 @@
+package com.hxl.test.web.controller;
+import com.hxl.test.core.entity.User;
+import com.hxl.test.web.service.UserService;
+import com.hxl.test.core.util.Json;
+import com.hxl.test.core.util.Tool;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.util.*;
+
+import static java.lang.System.out;
+
+@Controller
+@RequestMapping(value = "/user")//设置访问改控制类的"别名"
+public class UserController {
+
+    @Autowired
+    private UserService userService;
+
+    /*
+     **返回标准的Json格式数据其中包括（是否成功、状态码、消息、内容）
+     * 该方法是由于公司很多童鞋写接口时没有一个标准的定义，天马行空的编写数据接口导致调用时效率极低，因此自己写了一个标准的
+     * 接口调用方法，仅供大家参考
+     * @param statu
+     * @param code
+     * @param message
+     * @author lgf
+     * */
+    @RequestMapping(value = "/addUser" ,method =  RequestMethod.POST)
+    @ResponseBody
+    private void addUser( String phone,String name,String password,Integer age,String sex,HttpServletResponse response)throws Exception {
+        if(phone == null || name == null || password ==null){
+            out.println("手机号 或 账号 或 密码有为空");
+            Json.toJson(new Tool(false,7000,"手机号、账号、密码均不能为空，请重新输入",null),response);
+            return;
+        }
+        else {
+            List<User> newUser = userService.getUserByPhoneList(phone);
+            newUser.addAll(userService.getUserByName(name));
+            if (newUser.isEmpty() && userService.addUser(phone, name, password, age, sex) > 0) {
+                Tool result = new Tool(true,200,"新增成功",userService.getUserByPhoneList(phone));
+                out.println(phone+"新增成功");
+                Json.toJson(result,response);
+            }else {
+                out.println(phone+"手机号或账号已存在，请直接登录");
+                Json.toJson(new Tool(false,7000,"手机号或账号已存在，请直接登录",null),response);
+            }
+
+        }
+    }
+    /*
+    *delUser注销用户
+     */
+    @RequestMapping(value = "/delUser" ,method =  RequestMethod.POST)
+    @ResponseBody
+    private void delUser( String phone,String password,HttpServletResponse response)throws Exception {
+        if(phone == null || password ==null){
+            Json.toJson(new Tool(false,7000,"手机号、密码均不能为空，请输入",null),response);
+            return;
+        }
+        else {
+            List<User> dUser = userService.getUserByPhoneList(phone);
+            if(dUser.isEmpty()){
+                out.println(phone+"手机号不存在，请确认后再试");
+                Json.toJson(new Tool(false,7000,phone+"手机号不存在，请确认后再试",null),response);
+            }
+            else if( userService.checkUser(phone,password) == null) {
+                out.println(phone+"密码错误，请重新输入");
+                Json.toJson(new Tool(false,7000,"密码错误，请重新输入", userService.checkUser(phone,password)),response);
+            }else {
+                out.println(phone+"用户注销成功");
+                Json.toJson(new Tool(true,200,phone+"用户注销成功",userService.delUser(phone,password)),response);
+            }
+        }
+    }
+    /*
+     *modifyUser修改用户
+     */
+    @RequestMapping(value = "/modifyUser" ,method =  RequestMethod.POST)
+    @ResponseBody
+    private void modifyUser(String phone,String password,String new_phone,String new_name,String new_password,Integer new_age,String new_sex,HttpServletResponse response) throws Exception {
+        out.println("接收到的参数，-phone:" + phone+ "-password:" + password+ "-new_phone:" + new_phone+ "-new_name:" + new_name + "-new_password:" + new_password + "-new_age:" + new_age + "-new_sex:" + new_sex);
+        if (phone == null || password == null ) {
+            out.println("原始手机号、原始密码均不能为空，请输入");
+            Json.toJson(new Tool(false, 7000, "原始手机号、原始密码均不能为空，请输入", null), response);
+            return;
+        } else if(userService.checkUser(phone, password) == null){
+            out.println("原用户密码错误，请重新输入");
+            Json.toJson(new Tool(false, 7000, "原用户密码错误，请重新登录", null), response);
+            return;
+        }else{
+                User old_user = userService.checkUser(phone,password);
+                out.println("接收到的原手机号:"+old_user.getName()+" 密码："+old_user.getPassword());
+                if(!old_user.getPassword().equals(password)){
+                    out.println("密码不存确，请重新输入");
+                    Json.toJson(new Tool(false, 7000, "密码不存确，请重新输入", null), response);
+                    return;
+                } else {
+                    out.println("old_user修改前信息-phone：" + old_user.getPhone() + "-name:" + old_user.getName() + "-password:" + old_user.getPassword() + "-age:" + old_user.getAge() + "-sex:" + old_user.getSex());
+                    out.println("old_user.getPhone()=" + old_user.getPhone() + "new_phone=" + new_phone);
+                    if (new_phone != null && !old_user.getPhone().equals(new_phone)) {
+                        old_user.setPhone(new_phone);
+                        out.println("old_user.getPhone()=" + old_user.getPhone() + "new_phone=" + new_phone);
+                        out.println("old_user.getName()=" + old_user.getName() + "new_name=" + new_name);
+                    }else {
+                        out.println("新手机号为空或未变更不作处理");
+                    }
+                    if (new_name != null && !old_user.getName().equals(new_name)) {
+                        out.println("old_user.getName()=" + old_user.getName() + "new_name=" + new_name);
+                        old_user.setName(new_name);
+                        out.println("old_user.getName()=" + old_user.getName() + "new_name=" + new_name);
+                        out.println("old_user.getPassword()=" + old_user.getPassword() + "new_password=" + new_password);
+                    }else {
+                        out.println("新用户名为空或未变更不作处理");
+                    }
+                    if (new_password != null && !old_user.getPassword().equals(new_password)) {
+                        old_user.setPassword(new_password);
+                        out.println("old_user.getPassword()=" + old_user.getPassword() + "new_password=" + new_password);
+                        out.println("old_user.getAge()=" + old_user.getAge() + "new_age=" + new_age);
+                    }else {
+                        out.println("新密码为空或未变更不作处理");
+                    }
+                    if (!old_user.getAge().equals(new_age)) {
+                        old_user.setAge(new_age);
+                        out.println("old_user.getAge()=" + old_user.getAge() + "new_age=" + new_age);
+                        out.println("old_user.getSex()=" + old_user.getSex() + "new_sex=" + new_sex);
+                    }
+                    if (!old_user.getSex().equals(new_sex)) {
+                        old_user.setSex(new_sex);
+                        out.println("old_user.getSex()=" + old_user.getSex() + "new_sex=" + new_sex);
+                    }
+                    out.println("old_user落库前-phone：" + old_user.getPhone() + "-name:" + old_user.getName() + "-password:" + old_user.getPassword() + "-age:" + old_user.getAge() + "-sex:" + old_user.getSex());
+                    userService.modifyUser(old_user);
+                    User new_user = userService.checkUser(old_user.getPhone(), old_user.getPassword());
+                    out.println("new_user落库后:" + new_user.getPhone() + "-name:" + new_user.getName() + "-password:" + new_user.getPassword() + "-age:" + new_user.getAge() + "-sex:" + new_user.getSex());
+                    Json.toJson(new Tool(true, 200, new_phone + "用户信息修改成功", new_user), response);
+                    out.println(new_phone + "用户信息修改成功");
+                    return;
+                }
+        }
+
+    }
+
+    @RequestMapping("/getAllUser")
+    @ResponseBody
+    private void getAllUser(HttpServletResponse response)throws Exception {
+        List<User> users =  userService.getAllUser();
+        if(users.isEmpty()){
+            Json.toJson(new Tool(false,7000,"没有数据",null),response);
+            return;
+        }
+        Tool result = new Tool(true,200,"成功",users);
+        Json.toJson(result,response);
+    }
+
+    @RequestMapping(value = "/searchUser" ,method =  RequestMethod.GET)
+    @ResponseBody
+    private void searchUser( Integer id,String phone,String name,String password,Integer age,String sex,HttpServletResponse response)throws Exception {
+        List<User> users =  userService.searchUser(id,phone, name, password, age, sex);
+        Tool result =  new Tool(true,200,"成功",users);
+        Json.toJson(result,response);
+    }
+    /*
+     *searchUser为用户表综合搜索方法，name为模糊匹配，其它了段为精准匹配，所有字段不传为查询全表
+     */
+    @RequestMapping(value = "/getUserByPhoneList" ,method = RequestMethod.GET)
+    @ResponseBody
+    private void getUserByPhoneList(String phone,HttpServletResponse response)throws Exception {
+        List<User> users =  userService.getUserByPhoneList(phone);
+        if(users.isEmpty()){
+            Json.toJson(new Tool(false,7000,"没有数据",null),response);
+            return;
+        }
+        Tool result =  new Tool(true,200,"成功",users);
+        Json.toJson(result,response);
+    }
+    @RequestMapping(value = "/getUserByPhoneMap",method = RequestMethod.GET)
+    @ResponseBody
+    private  void   getUserByPhoneMap(String phone,HttpServletResponse response)throws Exception{
+        Map<String, Object> uMap = userService.getUserByPhoneMap(phone);
+            out.println(uMap.keySet());
+            out.println("单取phone:"+uMap.get("phone"));
+            out.println("以keySet方式遍历map");
+            for(String key :uMap.keySet()){
+                out.println("key:"+key+"-Value:"+uMap.get(key));
+            }
+            out.println("Map.Entry（）遍历map");
+            for(Map.Entry<String, Object> entry : uMap.entrySet()){
+                out.println("key:"+entry.getKey()+"-Value:"+entry.getValue());
+            }
+            Json.toJson(new Tool(true, 200,  "查询成功", uMap), response);
+    }
+
+    @RequestMapping(value = "/getUserByName" ,method =   RequestMethod.GET)
+    @ResponseBody
+    private void getUserByName(String name,HttpServletResponse response)throws Exception {
+        List<User> users =  userService.getUserByName(name);
+        if(users.isEmpty()){
+            Json.toJson(new Tool(false,7000,"没有数据",null),response);
+            return;
+        }
+        Tool result =  new Tool(true,200,"成功",users);
+        Json.toJson(result,response);
+    }
+
+
+    @RequestMapping("/checkLogin")
+    @ResponseBody
+    private User checkLogin() {
+        User users = new User();
+        return users;
+    }
+    /*
+     **登录调用方法跳转登录页面
+     * @author lgf
+     * */
+    @RequestMapping("/login")
+    private String index() {
+        return "Login2.html";
+    }
+    /*
+     **登录成功响应方法
+     * @param message
+     * @author lgf
+     * */
+    @RequestMapping(value="/success",method = {RequestMethod.POST, RequestMethod.GET})
+    private String ok() {
+        return "success";
+    }
+    /*
+     **输入账号密码登录校验方法
+     * @param message
+     * @author lgf
+     * */
+    @RequestMapping(value="/loginPage",method = {RequestMethod.POST, RequestMethod.GET})
+    private ModelAndView login(HttpServletRequest request, HttpSession session) {
+        ModelAndView mav=new ModelAndView();
+        //out.print("ajax进入后台！！");
+        String phone = request.getParameter("phone");
+        String password = request.getParameter("pwd");
+        out.print(userService.getUserByPhoneList(phone));
+        if (userService.checkUser(phone,password)!=null){
+            User chkUser = userService.checkUser(phone,password);
+            session.setAttribute("tame", chkUser);
+            //验证通过跳转首页
+            mav.setViewName("homePage");
+            return mav;
+        }else {
+            mav.clear();
+            mav.setViewName("Login2");
+            return mav;
+        }
+    }
+}

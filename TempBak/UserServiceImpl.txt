@@ -1,0 +1,61 @@
+package com.hxl.test.web.impl;
+
+import com.hxl.test.core.entity.User;
+import com.hxl.test.core.mapper.UserMapper;
+import com.hxl.test.web.service.UserService;
+import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
+import java.util.List;
+import java.util.Map;
+
+@Service(value = "userService")
+public class UserServiceImpl implements UserService {
+
+    @Resource
+    private UserMapper userMapper;
+
+    @Override
+    public Integer addUser (String phone, String name, String password, Integer age, String sex){
+        return  userMapper.addUser(phone,name,password,age,sex);
+    }
+    @Override
+    public Integer delUser(String phone, String password){
+        return userMapper.delUser(phone,password);
+    }
+
+    @Override
+    public Integer modifyUser(User new_user){
+        return userMapper.modifyUser(new_user.getId(),new_user.getPhone(),new_user.getName(),new_user.getPassword(),new_user.getAge(),new_user.getSex());
+    }
+
+    @Override
+    public List<User> getAllUser() {
+        return userMapper.getAllUser();
+    }
+
+    @Override
+    public List<User> searchUser (Integer id,String phone, String name, String password, Integer age, String sex){
+        return  userMapper.searchUser(id,phone,name,password,age,sex);
+    }
+    @Override
+    public List<User> getUserByPhoneList(String phone) {
+        return userMapper.getUserByPhoneList(phone);
+    }
+    @Override
+    public Map<String, Object> getUserByPhoneMap(String phone){
+        return  userMapper.getUserByPhoneMap(phone);
+    }
+
+    @Override
+    public List<User> getUserByName(String name) {
+        return userMapper.getUserByName(name);
+    }
+
+    @Override
+    public User checkUser(String phone,String password){
+            return userMapper.checkUser(phone,password);
+    }
+
+
+}

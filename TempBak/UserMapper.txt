@@ -1,0 +1,42 @@
+package com.hxl.test.core.mapper;
+
+import com.hxl.test.core.entity.User;
+import org.apache.ibatis.annotations.*;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+import java.util.Map;
+
+//@Mapper         //声明是一个Mapper,与springbootApplication中的@MapperScan二选一写上即可
+@Repository
+public interface UserMapper {
+//    @Insert({"insert  into `user`(`phone`,`name`,`password`,`age`,`sex`) values (#{0},#{1},#{2},#{3},#{4})"})
+    Integer addUser(String phone, String name, String password, Integer age, String sex);
+
+//    @Delete("delete from user where phone=#{0} and password=#{1}")
+    Integer delUser(String phone, String password);
+
+//    @Update("update user set #{1}=#{2} where phone =#{0}" )
+    Integer modifyUser(@Param("id") Integer id, @Param("phone") String phone, @Param("name") String name, @Param("password") String password, @Param("age") Integer age, @Param("sex") String sex);
+
+//    @Select("select * from user ")
+    List<User> getAllUser();
+
+    //    @Select("select * from user where id=#{id}")
+    List<User>  searchUser(@Param("id") Integer id, @Param("phone") String phone, @Param("name") String name, @Param("password") String password, @Param("age") Integer age, @Param("sex") String sex);
+
+//    @Select("select * from user where phone=#{phone}")
+    List<User>  getUserByPhoneList(String phone);
+
+//    @Select("select * from user where phone=#{phone}")
+    Map<String,Object> getUserByPhoneMap(String phone);
+
+
+//    @Select("select * from user where name=#{name}")
+    List<User>  getUserByName(String name);
+
+//    @Select("select * from user where phone=#{0} and password=#{1}")
+    User  checkUser(String phone, String password);
+
+
+}
