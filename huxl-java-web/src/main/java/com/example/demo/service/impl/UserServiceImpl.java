@@ -26,7 +26,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User loginPage(String name, String id) {
-        return userMapper.loginPage(name,id);
+    public User loginPage(String name) {
+        return userMapper.loginPage(name);
     }
 }

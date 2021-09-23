@@ -11,6 +11,6 @@
         SELECT name,id FROM user where name=#{value}
     </select>-->
     <select id="loginPage" parameterType="String" resultType="com.example.demo.entity.User">
-        SELECT name FROM user where name=#{0} and id=#{1}
+        SELECT * FROM user where name=#{0} or phone=#{0}
     </select>
 </mapper>

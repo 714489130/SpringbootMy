@@ -7,5 +7,5 @@ import java.util.List;
 public interface UserService {
     List<User> getAllUser();
     User getAllUserByName(String name);
-    User loginPage(String name,String id);
+    User loginPage(String name);
 }

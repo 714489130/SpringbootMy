@@ -14,5 +14,5 @@ public interface UserMapper {
     List<User> getAllUser();
     @Select("select name,id from user where name=#{name}")
     User getAllUserByName(@Param("name") String name);
-    User loginPage(String name,String id);
+    User loginPage(String name);
 }

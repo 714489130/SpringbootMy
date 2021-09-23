@@ -4,8 +4,10 @@ import com.example.demo.entity.User;
 import com.example.demo.service.UserService;
 import com.example.demo.util.Json;
 import com.example.demo.util.Tool;
+import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -62,19 +64,18 @@ public class UserController {
         User users =  userService.getAllUserByName("小芳");
         return users;
     }
-    @RequestMapping("/checkLogin")
-    @ResponseBody
-    private User checkLogin() {
-        User users = new User();
-        return users;
-    }
+
     /*
      **登录调用方法跳转登录页面
      * @author lgf
      * */
     @RequestMapping("/login")
-    private String index() {
-        return "Login2.html";
+    private String login() {
+        return "login.html";
+    }
+    @RequestMapping("/home")
+    private String home() {
+        return "homePage.html";
     }
     /*
      **登录成功响应方法
@@ -86,7 +87,21 @@ public class UserController {
         return "success";
     }
     /*
-     **输入账号密码登录校验方法
+     *按接收用户名和密码判断返回正确用户方法一
+     */
+    @RequestMapping("/checkLogin")
+    @ResponseBody
+    private User checkLogin(HttpServletRequest request) {
+        String uname=request.getParameter("username");
+        String pwd=request.getParameter("password");
+        out.print("开始用户判断,接收到username="+request.getParameter("username")+"password="+request.getParameter("password"));
+
+        User users = userService.loginPage(uname);
+        out.print("username="+users.getName()+"/password="+users.getPassword());
+        return users;
+    }
+    /*
+     **输入账号密码登录校验方法二
      * @param message
      * @author lgf
      * */
@@ -95,18 +110,24 @@ public class UserController {
         ModelAndView mav=new ModelAndView();
         //out.print("ajax进入后台！！");
         String name = request.getParameter("username");
-        String id = request.getParameter("pwd");
-        User tname = userService.loginPage(name,id);
+        String password = request.getParameter("pwd");
+        User tname = userService.loginPage(name);
         out.print(tname);
         if (tname == null) {
             mav.clear();
-            mav.setViewName("Login2");
+            mav.setViewName("login");
+            out.print("Sorry 用户不存在");
             return mav;
-        } else {
+        } else if(password==tname.getPassword()) {
             session.setAttribute("tname", tname.getName());
             out.print(tname.getName());
             //验证通过跳转首页
             mav.setViewName("homePage");
+            return mav;
+        }else {
+            mav.clear();
+            mav.setViewName("login");
+            out.print("Sorry 密码错误");
             return mav;
         }
     }

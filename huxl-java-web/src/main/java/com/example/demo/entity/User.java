@@ -6,6 +6,9 @@ public class User {
     private String name;
     private String sex;
     private String age ;
+    private String phone;
+    private String password;
+
    // private String memo;
     public String getId() {
         return id;
@@ -39,7 +42,23 @@ public class User {
         this.age = age;
     }
 
- /*   public String getMemo() {
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    /*   public String getMemo() {
         return memo;
     }
 
